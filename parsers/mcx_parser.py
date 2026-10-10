@@ -15,6 +15,35 @@ def _validate_file_exists(file_path: Path, file_description: str = None) -> None
         raise FileNotFoundError(f"{file_path}{desc}")
 
 
+# Field order of MCXScrips.bcp (no header row)
+MCXSCRIPS_COLUMNS = [
+    "Filler2", "Filler4", "InstrumentPartitionID", "Filler8", "Filler2_2",
+    "InstrumentIdentifier", "Symbol", "InstrumentSeries", "InstrumentType", "PermitTrading",
+    "Filler4_2", "ProductID", "BandhaniRange", "Filler1", "Filler1_2",
+    "Filler1_3", "Filler1_4", "InstrumentStartDate", "Filler4_3", "LastTradingDate",
+    "LotSize", "TickSize", "InstrumentDescription", "CapacityGroupID", "Filler4_4", "Filler4_5",
+    "DeliveryStartDate", "DeliveryEndDate", "Filler1_5", "Trade2TradeIndicator", "IndexFlag",
+    "DefaultIndex", "IndexInstrument", "FeedFlag", "Filler1_6", "Filler1_7",
+    "Filler1_8", "LastModifiedDate", "InstrumentStatusFlag", "InstrumentInfo", "MinimumLot",
+    "TenderPeriodStartDate", "TenderPeriodEndDate", "ULAssetGroup", "UnderlyingName", "UnderlyingIdentifier",
+    "Filler4_6", "Filler4_7", "Filler1_9", "Filler1_10", "Filler1_11",
+    "Filler1_12", "Filler1_13", "InstrumentName", "OriginalExpiryDate", "StrikePrice",
+    "OptionType", "CALevel", "SegmentID", "AdditionalLeanPeriodMargin", "Filler2_3",
+    "PriceQuoteUnit", "PriceQuoteQuantity", "TermsOfDailyPriceRange", "UpperDailyPriceRange", "LowerDailyPriceRange",
+    "TenderPeriodIndicator", "SettlementMethod", "TermsOfInitialMargin", "BuyInitialMarginRate", "BasePrice",
+    "MaxSingleTransactionQty", "MaxSingleTransactionValue", "InstrumentClass", "NearMonthInstrumentIdentifier", "FarMonthInstrumentIdentifier",
+    "TradingUnit", "TradingUnitFactor", "DeliveryUnit", "DeliveryUnitFactor", "PriceNumerator",
+    "Specification", "PriceDenominator", "GeneralNumerator", "GeneralDenominator", "LotNumerator",
+    "LotDenominator", "DecimalLocator", "Filler2_4", "Filler15", "Filler4_8",
+    "Filler50", "AdditionalLeanPeriodMarginSell", "SpreadBenefitOnALPM", "SellInitialMarginRate", "ProductName",
+    "Filler2_5", "TermsOfSpecialMargin", "BuySpecialMarginRate", "SellSpecialMarginRate", "InitialMarginSpreadBenefitFlag",
+    "InstrumentEndDateTime", "TradingCurrency", "Filler3", "ProductMonth", "PreOpenAllowed",
+    "GroupID", "MatchingType", "SpreadType", "Filler16", "ValueMethod",
+    "AdditionalLeanPeriodMarginBuy", "SLBMEligibility", "TermsOfExtremeLossMargin", "BuyExtremeLossMarginRate", "SellExtremeLossMarginRate",
+    "OptionsPricingModel", "DeliveryMode",
+]
+
+
 # ===============================================
 # FO CONTRACT MCX SCRIPS.BCP
 # ===============================================
@@ -26,32 +55,7 @@ def get_mcx_scrips_df(bdate: str) -> pd.DataFrame:
 
     df = pd.read_csv(file_path, header=None)
 
-    df.columns = [
-        "Filler2", "Filler4", "InstrumentPartitionID", "Filler8", "Filler2_2",
-        "InstrumentIdentifier", "Symbol", "InstrumentSeries", "InstrumentType", "PermitTrading",
-        "Filler4_2", "ProductID", "BandhaniRange", "Filler1", "Filler1_2",
-        "Filler1_3", "Filler1_4", "InstrumentStartDate", "Filler4_3", "LastTradingDate",
-        "LotSize", "TickSize", "InstrumentDescription", "CapacityGroupID", "Filler4_4", "Filler4_5",
-        "DeliveryStartDate", "DeliveryEndDate", "Filler1_5", "Trade2TradeIndicator", "IndexFlag",
-        "DefaultIndex", "IndexInstrument", "FeedFlag", "Filler1_6", "Filler1_7",
-        "Filler1_8", "LastModifiedDate", "InstrumentStatusFlag", "InstrumentInfo", "MinimumLot",
-        "TenderPeriodStartDate", "TenderPeriodEndDate", "ULAssetGroup", "UnderlyingName", "UnderlyingIdentifier",
-        "Filler4_6", "Filler4_7", "Filler1_9", "Filler1_10", "Filler1_11",
-        "Filler1_12", "Filler1_13", "InstrumentName", "OriginalExpiryDate", "StrikePrice",
-        "OptionType", "CALevel", "SegmentID", "AdditionalLeanPeriodMargin", "Filler2_3",
-        "PriceQuoteUnit", "PriceQuoteQuantity", "TermsOfDailyPriceRange", "UpperDailyPriceRange", "LowerDailyPriceRange",
-        "TenderPeriodIndicator", "SettlementMethod", "TermsOfInitialMargin", "BuyInitialMarginRate", "BasePrice",
-        "MaxSingleTransactionQty", "MaxSingleTransactionValue", "InstrumentClass", "NearMonthInstrumentIdentifier", "FarMonthInstrumentIdentifier",
-        "TradingUnit", "TradingUnitFactor", "DeliveryUnit", "DeliveryUnitFactor", "PriceNumerator",
-        "Specification", "PriceDenominator", "GeneralNumerator", "GeneralDenominator", "LotNumerator",
-        "LotDenominator", "DecimalLocator", "Filler2_4", "Filler15", "Filler4_8",
-        "Filler50", "AdditionalLeanPeriodMarginSell", "SpreadBenefitOnALPM", "SellInitialMarginRate", "ProductName",
-        "Filler2_5", "TermsOfSpecialMargin", "BuySpecialMarginRate", "SellSpecialMarginRate", "InitialMarginSpreadBenefitFlag",
-        "InstrumentEndDateTime", "TradingCurrency", "Filler3", "ProductMonth", "PreOpenAllowed",
-        "GroupID", "MatchingType", "SpreadType", "Filler16", "ValueMethod",
-        "AdditionalLeanPeriodMarginBuy", "SLBMEligibility", "TermsOfExtremeLossMargin", "BuyExtremeLossMarginRate", "SellExtremeLossMarginRate",
-        "OptionsPricingModel", "DeliveryMode",
-    ]
+    df.columns = MCXSCRIPS_COLUMNS
 
     df = df.astype(str)
     return df

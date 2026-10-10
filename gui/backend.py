@@ -94,6 +94,9 @@ def open_path(path) -> None:
         win = subprocess.run(["wslpath", "-w", path], capture_output=True, text=True).stdout.strip()
         subprocess.Popen(["explorer.exe", win or path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return
+    if os.name == "nt":
+        os.startfile(path)  # noqa: S606 — Explorer
+        return
     for opener in ("xdg-open", "open"):
         if shutil.which(opener):
             subprocess.Popen([opener, path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -148,6 +151,7 @@ def child_env(**extra) -> dict:
     env = {**os.environ, **extra}
     env["PYTHONPATH"] = os.pathsep.join(filter(None, [str(PROJECT_ROOT), os.environ.get("PYTHONPATH")]))
     env["PYTHONUNBUFFERED"] = "1"
+    env["PYTHONIOENCODING"] = "utf-8"  # the pipe is read as UTF-8 on every OS
     env.setdefault("PREFECT_LOGGING_COLORS", "false")
     return env
 
@@ -188,7 +192,7 @@ class Job:
         self.started, self.ended = time.time(), None
         self.running_step = None
         self.proc = subprocess.Popen(cmd, cwd=PROJECT_ROOT, env=env, stdout=subprocess.PIPE,
-                                     stderr=subprocess.STDOUT, text=True, bufsize=1, errors="replace",
+                                     stderr=subprocess.STDOUT, text=True, bufsize=1, encoding="utf-8", errors="replace",
                                      start_new_session=(os.name == "posix"))
         Job.current = self
         threading.Thread(target=self._pump, daemon=True).start()
@@ -243,6 +247,9 @@ class Job:
 
     def stop(self):
         if not self.running:
+            return
+        if os.name != "posix":  # Windows: kill the whole tree (Prefect server, workers) at once
+            subprocess.run(["taskkill", "/T", "/F", "/PID", str(self.proc.pid)], capture_output=True)
             return
         try:
             os.killpg(self.proc.pid, signal.SIGTERM)

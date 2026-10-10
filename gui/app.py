@@ -1877,6 +1877,7 @@ class SettingsPage(QWidget):
         self.hol = {}
         self.cur_file = None
         self.reg_log = LogView(220)
+        win.jobs.update.connect(self.on_job)
 
     def showEvent(self, e):
         self.d = B.api_settings({})
@@ -2053,11 +2054,6 @@ class SettingsPage(QWidget):
         for w in (c1, c2, self.reg_card):
             lay.addWidget(w)
         lay.addStretch(1)
-        try:
-            self.win.jobs.update.disconnect(self.on_job)
-        except (RuntimeError, TypeError):
-            pass
-        self.win.jobs.update.connect(self.on_job)
 
     def save_cron(self, key, e):
         try:

@@ -1,0 +1,41 @@
+name: Release
+
+# Push a tag like v2.0.0 to test on Windows + Linux and publish a GitHub Release with the packages.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package
+        run: |
+          NAME="phoenix-contract-masters-${GITHUB_REF_NAME}"
+          git archive --format=zip --prefix="$NAME/" -o "$NAME-windows.zip" HEAD
+          git archive --format=tar.gz --prefix="$NAME/" -o "$NAME-linux.tar.gz" HEAD
+          ls -l phoenix-contract-masters-*
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: phoenix-contract-masters-*
+          generate_release_notes: true
+          body: |
+            ## Install
+            **Windows** — needs Python 3.10+ (python.org). Unzip `…-windows.zip`, then right-click
+            `install\windows.ps1` → *Run with PowerShell*. Start the app from the Desktop / Start menu.
+
+            **Linux** — `tar xzf …-linux.tar.gz && cd phoenix-contract-masters-*/ && ./install/linux.sh`,
+            then start it from the application menu.
+
+            **WSL** — clone or unpack inside WSL, `pip install --user -r requirements.txt`, then
+            `./install/wsl-shortcut.sh` for a Windows desktop shortcut.
+
+            Put your database URL in `config/local.json` (see README).

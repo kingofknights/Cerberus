@@ -99,4 +99,6 @@ def main(bdate, steps, config, stop_on_error, no_retry, dry_run, register):
 
 
 if __name__ == "__main__":
+    for stream in (sys.stdout, sys.stderr):
+        stream.reconfigure(errors="replace")  # Windows consoles can't print every symbol; never crash on it
     main()

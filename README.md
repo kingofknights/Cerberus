@@ -1,5 +1,7 @@
 # Phoenix Contract Masters
 
+[![CI](https://github.com/kingofknights/Cerberus/actions/workflows/ci.yml/badge.svg)](https://github.com/kingofknights/Cerberus/actions/workflows/ci.yml)
+
 Builds standardized 52-column contract master CSVs for **NSE**, **BSE** and **MCX** (CM and FO) from the
 exchange reference files, ready for the Phoenix trading engines and the PostgreSQL `contracts` table.
 
@@ -17,15 +19,18 @@ flowchart LR
 
 ---
 
+## Install
+
+| Where | How |
+| :--- | :--- |
+| **Windows** | Python 3.10+ from python.org, then right-click `install\windows.ps1` → *Run with PowerShell*. Creates `.venv` and Desktop + Start-menu shortcuts. |
+| **Linux** | `./install/linux.sh` — creates `.venv` and an application-menu entry. |
+| **WSL** (app shown on the Windows desktop) | `pip install --user -r requirements.txt`, then `./install/wsl-shortcut.sh` for a Windows Desktop + Start-menu shortcut (no console window). |
+| **Anywhere, no install** | `pip install -r requirements.txt && python3 -m gui` (or `./run_gui.sh`). |
+
+Packaged releases (zip for Windows, tar.gz for Linux) are on the GitHub Releases page.
+
 ## Quick start
-
-```bash
-pip install --user -r requirements.txt
-./run_gui.sh                        # or: python3 -m gui
-```
-
-A native Qt 6 desktop app (PySide6). Under WSL it opens as a normal window on the Windows desktop (WSLg)
-and uses the Windows Segoe UI font.
 
 1. **Build** → pick the business date (the day the masters are *for*). The header shows the previous
    business day, which is the date most exchange files carry.
@@ -124,7 +129,18 @@ Light / dark theme in the sidebar. Code: `gui/app.py` (UI) over `gui/backend.py`
 
 The header lists any missing input files before running. Exit code is non-zero if a master failed.
 
-Self-checks: `python3 -m core.inputs` (file names, importer) and `python3 pipeline.py` (step registry).
+Checks: `python3 -m core.inputs` (file names, importer), `python3 pipeline.py` (step registry) and
+`python3 -m pytest tests` (end-to-end MCX build from a zipped download, desktop app smoke test).
+
+## CI / CD
+
+GitHub Actions (`.github/workflows/`):
+
+- **CI** — every push / pull request: Windows + Linux × Python 3.10 / 3.12 run the self-checks, the CLI,
+  the end-to-end build and the headless app test; then both installers are run on fresh Windows and Linux
+  machines.
+- **Release** — push a tag (`git tag v2.0.0 && git push origin v2.0.0`): the full CI runs, then a GitHub
+  Release is published with `…-windows.zip` and `…-linux.tar.gz`.
 
 ---
 

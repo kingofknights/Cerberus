@@ -15,3 +15,6 @@ psycopg[binary]>=3.1.0
 
 # Desktop app (python3 -m gui)
 PySide6-Essentials>=6.6
+
+# Time-zone data for zoneinfo on Windows (Linux has it built in)
+tzdata; platform_system == "Windows"

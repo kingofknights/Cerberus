@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:      # reused by release.yml
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: test (${{ matrix.os }}, py${{ matrix.python }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.10", "3.12"]
+    runs-on: ${{ matrix.os }}
+    env:
+      PYTHONIOENCODING: utf-8
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - name: Qt runtime libraries
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -q && sudo apt-get install -y -q libegl1 libxkbcommon0 libfontconfig1 libdbus-1-3
+      - name: Install
+        run: python -m pip install -r requirements.txt pytest
+      - name: Byte-compile everything
+        run: python -m compileall -q .
+      - name: Self-checks (input files, importer, step registry)
+        run: |
+          python -m core.inputs
+          python pipeline.py
+      - name: CLI
+        run: |
+          python run_all.py --help
+          python run_all.py --dry-run -d 20261012
+      - name: Tests (end-to-end MCX build, desktop app)
+        run: python -m pytest -v tests
+
+  installer:
+    name: installer (${{ matrix.os }})
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run Windows installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          powershell -ExecutionPolicy Bypass -File install\windows.ps1
+          if (-not (Test-Path "$([Environment]::GetFolderPath('Desktop'))\Phoenix Contract Masters.lnk")) { throw "no shortcut" }
+          .venv\Scripts\python.exe -c "import gui.app, gui.help_page; print('app imports OK')"
+      - name: Run Linux installer
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q libegl1 libxkbcommon0 libfontconfig1 libdbus-1-3
+          ./install/linux.sh
+          test -f ~/.local/share/applications/phoenix-contract-masters.desktop
+          .venv/bin/python -c "import gui.app, gui.help_page; print('app imports OK')"
