@@ -46,7 +46,7 @@ jobs:
       - name: Show test failure in the run summary
         if: failure()
         shell: bash
-        run: &annotate |
+        run: |
           [ -f pytest.log ] || exit 0
           msg=$(tail -c 3500 pytest.log | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
           echo "::error title=Tests failed::$msg"
@@ -113,7 +113,10 @@ jobs:
       - name: Show test failure in the run summary
         if: failure()
         shell: bash
-        run: *annotate
+        run: |
+          [ -f pytest.log ] || exit 0
+          msg=$(tail -c 3500 pytest.log | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
+          echo "::error title=Tests failed::$msg"
       - uses: actions/upload-artifact@v4
         with:
           name: PhoenixContractMasters-${{ runner.os }}
