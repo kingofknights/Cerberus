@@ -41,7 +41,15 @@ jobs:
           python run_all.py --help
           python run_all.py --dry-run -d 20261012
       - name: Tests (end-to-end MCX build, desktop app)
-        run: python -m pytest -v tests
+        shell: bash
+        run: python -m pytest -v tests 2>&1 | tee pytest.log; exit ${PIPESTATUS[0]}
+      - name: Show test failure in the run summary
+        if: failure()
+        shell: bash
+        run: &annotate |
+          [ -f pytest.log ] || exit 0
+          msg=$(tail -c 3500 pytest.log | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
+          echo "::error title=Tests failed::$msg"
 
   installer:
     name: installer (${{ matrix.os }})
@@ -101,7 +109,11 @@ jobs:
         run: |
           EXE="$PWD/dist/PhoenixContractMasters"; [ "$RUNNER_OS" = Windows ] && EXE="$EXE.exe"
           ls -l "$EXE"
-          PHOENIX_EXE="$EXE" python -m pytest -v tests/test_exe.py
+          PHOENIX_EXE="$EXE" python -m pytest -v tests/test_exe.py 2>&1 | tee pytest.log; exit ${PIPESTATUS[0]}
+      - name: Show test failure in the run summary
+        if: failure()
+        shell: bash
+        run: *annotate
       - uses: actions/upload-artifact@v4
         with:
           name: PhoenixContractMasters-${{ runner.os }}

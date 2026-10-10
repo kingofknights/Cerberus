@@ -1,12 +1,13 @@
 # PyInstaller recipe for the one-file client app:   pyinstaller --noconfirm phoenix.spec   ->  dist/
 # Prefect is left out on purpose (see core/prefect_utils.py); builds run as plain function calls.
 import sys
-
-from PyInstaller.utils.hooks import collect_submodules
+from pathlib import Path
 
 datas = [(f"config/{n}.json", "config") for n in ("common", "nse", "bse", "mcx", "uploader_example")]
 datas += [("gui/assets/app.png", "gui/assets"), ("gui/assets/app.ico", "gui/assets")]  # never config/local.json
-hidden = (collect_submodules("flows") + collect_submodules("parsers")  # loaded by name in pipeline.py
+# flows are imported by name in pipeline.py, so PyInstaller can't see them; list them from the files
+# (collect_submodules runs in a child process without this folder on its path and silently finds nothing)
+hidden = ([f"{pkg}.{f.stem}" for pkg in ("flows", "parsers", "core") for f in Path(pkg).glob("*.py")]
           + ["run_all", "db.uploader", "db.schema", "gui.help_page",
              "sqlalchemy.dialects.postgresql.psycopg", "psycopg"])
 
