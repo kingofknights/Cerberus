@@ -4,10 +4,9 @@ import numpy as np
 import pandas as pd
 
 from typing import Optional
-from prefect import flow, task
 
 from core.dates import generate_business_dates
-from core.prefect_utils import deploy_flow, unified_notifier, task_name_gen, task_retries
+from core.prefect_utils import flow, task, deploy_flow, unified_notifier, task_name_gen, task_retries
 from core.enums import Exchange, Segment
 from core.config import get_storage_config
 from parsers.bse_parser import get_merged_cm_scrip_bhavcopy_df

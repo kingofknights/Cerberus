@@ -73,7 +73,11 @@ def test_import_and_build(tmp_path):
                          cwd=ROOT, env=env, capture_output=True, text=True, encoding="utf-8", timeout=600)
     assert run.returncode == 0, run.stdout[-4000:] + run.stderr[-4000:]
 
-    master = tmp_path / "data" / "mcx" / "common" / BDATE / "mcx_fo_contract_master.csv"
+    check_master(tmp_path / "data")
+
+
+def check_master(data: Path):
+    master = data / "mcx" / "common" / BDATE / "mcx_fo_contract_master.csv"
     rows = {r["token"]: r for r in csv.DictReader(master.open(encoding="utf-8"))}
     assert set(rows) == {"1001", "1002", "1003"}
     fut, ce, pe = rows["1001"], rows["1002"], rows["1003"]

@@ -17,23 +17,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4   # the tested apps from the CI run above
+        with:
+          path: apps
       - name: Package
         run: |
-          NAME="phoenix-contract-masters-${GITHUB_REF_NAME}"
-          git archive --format=zip --prefix="$NAME/" -o "$NAME-windows.zip" HEAD
-          git archive --format=tar.gz --prefix="$NAME/" -o "$NAME-linux.tar.gz" HEAD
-          ls -l phoenix-contract-masters-*
+          V="${GITHUB_REF_NAME}"
+          cp apps/PhoenixContractMasters-Windows/PhoenixContractMasters.exe "PhoenixContractMasters-$V-windows.exe"
+          cp apps/PhoenixContractMasters-Linux/PhoenixContractMasters "PhoenixContractMasters-$V-linux"
+          chmod +x "PhoenixContractMasters-$V-linux"
+          NAME="phoenix-contract-masters-$V-source"
+          git archive --format=zip --prefix="$NAME/" -o "$NAME.zip" HEAD
+          git archive --format=tar.gz --prefix="$NAME/" -o "$NAME.tar.gz" HEAD
+          ls -l PhoenixContractMasters-* phoenix-contract-masters-*
       - uses: softprops/action-gh-release@v2
         with:
-          files: phoenix-contract-masters-*
+          files: |
+            PhoenixContractMasters-*
+            phoenix-contract-masters-*
           generate_release_notes: true
           body: |
-            ## Install
-            **Windows** — needs Python 3.10+ (python.org). Unzip `…-windows.zip`, then right-click
-            `install\windows.ps1` → *Run with PowerShell*. Start the app from the Desktop / Start menu.
+            ## Download
+            **Windows** — `PhoenixContractMasters-…-windows.exe`: one file, nothing to install. Double-click it.
+            It is not code-signed yet, so Windows may say *"Windows protected your PC"* → **More info** → **Run anyway**.
 
-            **Linux** — `tar xzf …-linux.tar.gz && cd phoenix-contract-masters-*/ && ./install/linux.sh`,
-            then start it from the application menu.
+            **Linux** — `PhoenixContractMasters-…-linux`: `chmod +x` it, then run it.
+
+            Settings and the default configuration are created on first start in `~/.contract_downloader`
+            (Windows: `C:\Users\<you>\.contract_downloader`). Exchange files and masters go to the data
+            folder (default `~/EOD`), changeable in Settings.
+
+            ## From source (needs Python 3.10+)
+            **Windows** — unzip the source zip, right-click `install\windows.ps1` → *Run with PowerShell*.
+            **Linux** — `tar xzf …-source.tar.gz && cd phoenix-contract-masters-*/ && ./install/linux.sh`.
 
             **WSL** — clone or unpack inside WSL, `pip install --user -r requirements.txt`, then
             `./install/wsl-shortcut.sh` for a Windows desktop shortcut.

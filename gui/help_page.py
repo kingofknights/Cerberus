@@ -252,7 +252,8 @@ class HelpPage(QWidget):
         about.setVerticalSpacing(6)
         for i, (k, v) in enumerate([
                 ("Version", __version__), ("Builds", "NSE CM, NSE FO, BSE CM, BSE FO, MCX FO contract masters"),
-                ("Program folder", str(PROJECT_ROOT)), ("Data folder", base), ("Python", platform.python_version()),
+                ("Program", sys.executable if B.FROZEN else str(PROJECT_ROOT)),
+                ("Config folder", str(B.config_dir())), ("Data folder", base), ("Python", platform.python_version()),
                 ("Qt / PySide6", f"{qVersion()} / {PYSIDE_VERSION}"),
                 ("System", f"{platform.system()} {platform.release()}" + ("  (WSL)" if B.IS_WSL else ""))]):
             about.addWidget(label(k, "muted"), i, 0)

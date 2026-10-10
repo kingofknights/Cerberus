@@ -4,11 +4,10 @@ import numpy as np
 import pandas as pd
 
 from datetime import datetime
-from prefect import flow, task
 from typing import Dict, Optional
 
 
-from core.prefect_utils import deploy_flow, unified_notifier, task_name_gen, task_retries
+from core.prefect_utils import flow, task, deploy_flow, unified_notifier, task_name_gen, task_retries
 from core.dates import generate_business_dates, convert_mcx_epoch_to_datetime
 from core.enums import Exchange, Segment
 from core.config import get_storage_config

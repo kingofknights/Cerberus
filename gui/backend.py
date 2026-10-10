@@ -4,6 +4,7 @@ Every function returns plain dicts/lists so the UI layer stays thin. Long work (
 registration) runs as a subprocess Job; the UI polls Job.current.snapshot().
 """
 
+import importlib.util
 import json
 import os
 import re
@@ -39,6 +40,19 @@ history = History()
 # ---------------------------------------------------------------------------
 # helpers
 # ---------------------------------------------------------------------------
+
+FROZEN = getattr(sys, "frozen", False)  # running as the packaged exe
+HAS_PREFECT = (os.environ.get("CONTRACT_DOWNLOADER_NO_PREFECT") != "1"
+               and importlib.util.find_spec("prefect") is not None)
+
+
+def tool_cmd(tool: str, *args) -> list:
+    """Command line for a child run. The packaged exe starts itself with a switch (see phoenix.py)."""
+    if FROZEN:
+        return [sys.executable, {"run_all": "--run-all", "uploader": "--uploader"}[tool], *args]
+    script = [str(PROJECT_ROOT / "run_all.py")] if tool == "run_all" else ["-m", "db.uploader"]
+    return [sys.executable, "-u", *script, *args]
+
 
 def ymd(d: date) -> str:
     return d.strftime("%Y%m%d")
@@ -193,7 +207,8 @@ class Job:
         self.running_step = None
         self.proc = subprocess.Popen(cmd, cwd=PROJECT_ROOT, env=env, stdout=subprocess.PIPE,
                                      stderr=subprocess.STDOUT, text=True, bufsize=1, encoding="utf-8", errors="replace",
-                                     start_new_session=(os.name == "posix"))
+                                     start_new_session=(os.name == "posix"),
+                                     creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))  # no console pop-up
         Job.current = self
         threading.Thread(target=self._pump, daemon=True).start()
 
@@ -341,7 +356,7 @@ def api_build(body):
     if not run:
         raise ValueError("Nothing to build: " + "; ".join(f"{STEPS[k].exchange} {STEPS[k].segment} — {v}"
                                                           for k, v in blocked.items()))
-    cmd = [sys.executable, "-u", str(PROJECT_ROOT / "run_all.py"), "-s", ",".join(run), "-d", bd]
+    cmd = tool_cmd("run_all", "-s", ",".join(run), "-d", bd)
     if body.get("stop_on_error"):
         cmd.append("--stop-on-error")
     if not body.get("retry"):
@@ -458,7 +473,7 @@ def api_db_test(body):
 
 
 def api_db_upload(body):
-    cmd = [sys.executable, "-u", "-m", "db.uploader"]
+    cmd = tool_cmd("uploader")
     if body.get("file"):
         cmd += ["-f", body["file"]]
     else:
@@ -541,7 +556,9 @@ def api_set_orchestration(body):
 
 def api_register(body):
     keys = [k for k in STEPS if k in body.get("keys", [])] or list(STEPS)
-    cmd = [sys.executable, "-u", str(PROJECT_ROOT / "run_all.py"), "-r", "-s", ",".join(keys)]
+    if not HAS_PREFECT:
+        raise ValueError("Prefect is not part of this packaged app — register deployments from a source install.")
+    cmd = tool_cmd("run_all", "-r", "-s", ",".join(keys))
     return start_job("register", "Prefect deployments", cmd, child_env(), {}).snapshot()
 
 

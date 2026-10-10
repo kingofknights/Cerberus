@@ -6,8 +6,26 @@ import os
 from pathlib import Path
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional
-from prefect.runtime import flow_run, task_run
-from prefect.client.schemas.schedules import CronSchedule
+# Prefect is optional: the packaged desktop app (PyInstaller exe) has no Prefect, because Prefect starts its
+# temporary API server as a separate Python process. Without it, @flow / @task become plain function calls
+# (no retries, no Prefect UI); the master-building code itself is identical.
+try:
+    if os.environ.get("CONTRACT_DOWNLOADER_NO_PREFECT") == "1":
+        raise ImportError("disabled")
+    from prefect import flow, task
+    from prefect.runtime import flow_run, task_run
+    HAS_PREFECT = True
+except ImportError:
+    HAS_PREFECT = False
+    flow_run = task_run = None
+
+    def _passthrough(fn=None, **_options):
+        def wrap(f):
+            f.fn = f  # same attribute Prefect exposes for the undecorated function
+            return f
+        return wrap(fn) if callable(fn) else wrap
+
+    flow = task = _passthrough
 
 
 def task_retries(n: int) -> int:
@@ -72,6 +90,7 @@ def deploy_flow(
     flow_basename = os.path.basename(flow_name).replace(".py", "")
     project_name = os.path.basename(os.path.dirname(flow_name))
 
+    from prefect.client.schemas.schedules import CronSchedule
     schedule = CronSchedule(cron=cron, timezone=timezone) if cron else None
 
     table = PrettyTable()

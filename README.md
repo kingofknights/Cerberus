@@ -28,7 +28,20 @@ flowchart LR
 | **WSL** (app shown on the Windows desktop) | `pip install --user -r requirements.txt`, then `./install/wsl-shortcut.sh` for a Windows Desktop + Start-menu shortcut (no console window). |
 | **Anywhere, no install** | `pip install -r requirements.txt && python3 -m gui` (or `./run_gui.sh`). |
 
-Packaged releases (zip for Windows, tar.gz for Linux) are on the GitHub Releases page.
+### For clients: one file, no Python
+
+`PhoenixContractMasters.exe` (Windows) / `PhoenixContractMasters` (Linux) is the whole app in one file.
+Get it from the **Actions** tab (every CI run → *Artifacts*) or, for a version, from **Releases**. Build it
+yourself with `pip install pyinstaller && pyinstaller phoenix.spec` (→ `dist/`).
+
+- First start creates `~/.contract_downloader/config/` (Windows: `C:\Users\<you>\.contract_downloader`) with the
+  default configuration; put the database URL in `config/local.json` there. Secrets are never bundled.
+- The packaged app has no Prefect: masters are built by the same code as plain function calls (identical
+  output, faster start). "Wait & retry" and Prefect schedules need a source install.
+- The exe is not code-signed: Windows SmartScreen shows *"Windows protected your PC"* → **More info** →
+  **Run anyway**.
+- Command line from the same file: `PhoenixContractMasters --run-all -s nse -d 20261012`,
+  `--import 20261012 <folder or zip>`, `--uploader …`.
 
 ## Quick start
 
@@ -138,9 +151,10 @@ GitHub Actions (`.github/workflows/`):
 
 - **CI** — every push / pull request: Windows + Linux × Python 3.10 / 3.12 run the self-checks, the CLI,
   the end-to-end build and the headless app test; then both installers are run on fresh Windows and Linux
-  machines.
+  machines; the one-file app is built for Windows and Linux, tested (import, CLI build, a build started
+  from the GUI) and uploaded as a run artifact.
 - **Release** — push a tag (`git tag v2.0.0 && git push origin v2.0.0`): the full CI runs, then a GitHub
-  Release is published with `…-windows.zip` and `…-linux.tar.gz`.
+  Release is published with the Windows `.exe`, the Linux binary and source packages.
 
 ---
 

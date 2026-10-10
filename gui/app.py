@@ -1039,6 +1039,7 @@ class BuildPage(QWidget):
         self.retry.setToolTip("Off: fail at once so you see the problem now.\n"
                               "On: wait and retry like the scheduled jobs (up to 6 × 20 min).")
         self.retry.setChecked(bool(prefs.get("retry")))
+        self.retry.setVisible(B.HAS_PREFECT)  # retries come from Prefect; the packaged app has none
         self.stop_err = Switch("Stop at first error")
         self.stop_err.setChecked(bool(prefs.get("stop_on_error")))
         self.build_btn = button("Build", "zap", "big", "Ctrl+R", self.start)
@@ -2048,6 +2049,15 @@ class SettingsPage(QWidget):
                           hbox(None, button("Save", "save", slot=self.save_orch),
                                button("Register selected", "play", "primary", slot=self.register)),
                           margins=(20, 18, 20, 18), spacing=10))
+        if not B.HAS_PREFECT:
+            note = card()
+            note.setLayout(vbox(label("PREFECT SCHEDULES", "section"),
+                                label("Scheduled runs need Prefect, which is not part of this packaged app. Install "
+                                      "from source on the server that should run on a timetable.", "muted", wrap=True),
+                                margins=(20, 18, 20, 18), spacing=8))
+            lay.addWidget(note)
+            lay.addStretch(1)
+            return
         self.reg_card = card()
         self.reg_card.setLayout(vbox(self.reg_log, spacing=0))
         self.reg_card.setVisible(bool(B.Job.current and B.Job.current.kind == "register"))
