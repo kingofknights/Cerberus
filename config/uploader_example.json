@@ -1,0 +1,15 @@
+{
+  "_comment": "Phoenix Trading Platform - Contract Uploader Configuration Demo",
+  "database": {
+    "url": "postgresql+psycopg://USER:PASSWORD@HOST:5432/DBNAME",
+    "chunk_size": 1000,
+    "create_tables": true
+  },
+  "storage": {
+    "base_path": "~/EOD/"
+  },
+  "ingestion": {
+    "default_exchange": "all",
+    "default_segment": "all"
+  }
+}

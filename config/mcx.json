@@ -1,0 +1,11 @@
+{
+  "exchange": "MCX",
+  "storage": {
+    "path": "mcx",
+    "input_dir": "{base_path}/mcx/source/{bdate}/",
+    "fo_master_output": "{base_path}/mcx/common/{bdate}/mcx_fo_contract_master.csv"
+  },
+  "schedules": {
+    "mcx_fo": "00 6 * * 1-5"
+  }
+}

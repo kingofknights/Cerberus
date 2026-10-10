@@ -1,0 +1,13 @@
+{
+  "exchange": "NSE",
+  "storage": {
+    "path": "nse",
+    "input_dir": "{base_path}/nse/source/{bdate}/",
+    "cm_master_output": "{base_path}/nse/common/{bdate}/nse_cm_contract_master.csv",
+    "fo_master_output": "{base_path}/nse/common/{bdate}/nse_fo_contract_master.csv"
+  },
+  "schedules": {
+    "nse_cm": "00 6 * * 1-5",
+    "nse_fo": "00 6 * * 1-5"
+  }
+}

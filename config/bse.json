@@ -1,0 +1,13 @@
+{
+  "exchange": "BSE",
+  "storage": {
+    "path": "bse",
+    "input_dir": "{base_path}/bse/source/{bdate}/",
+    "cm_master_output": "{base_path}/bse/common/{bdate}/bse_cm_contract_master.csv",
+    "fo_master_output": "{base_path}/bse/common/{bdate}/bse_fo_contract_master.csv"
+  },
+  "schedules": {
+    "bse_cm": "00 6 * * 1-5",
+    "bse_fo": "00 6 * * 1-5"
+  }
+}

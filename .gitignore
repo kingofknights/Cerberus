@@ -1,0 +1,7 @@
+# machine-local secrets (database URL etc.) — see README "Configuration"
+config/local.json
+config/*.bak
+__pycache__/
+*.pyc
+.venv/
+venv/
