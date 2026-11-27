@@ -47,6 +47,7 @@ def make_download(folder: Path) -> Path:
     w.writerow({**dict.fromkeys(BHAV_COLS, ""), "FinInstrmId": "1001", "OpnPric": "120000", "HghPric": "121000",
                 "LwPric": "119000", "ClsPric": "120500.5", "LastPric": "120500", "OpnIntrst": "42",
                 "TtlTradgVol": "7", "TtlTrfVal": "843500"}.values())
+    w.writerow(dict.fromkeys(BHAV_COLS, "").values())  # blank FinInstrmId: must not turn every token into '1001.0'
     z = folder / "mcx_download.zip"
     with zipfile.ZipFile(z, "w") as zf:
         zf.writestr("Common/MCXScrips.bcp", scrips.getvalue())

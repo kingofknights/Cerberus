@@ -16,6 +16,16 @@ def _validate_file_exists(file_path: Path, file_description: str = None) -> None
         raise FileNotFoundError(f"{file_path}{desc}")
 
 
+def _by_token(df: pd.DataFrame) -> pd.DataFrame:
+    """Bhavcopy keyed by FinInstrmId as plain digits, one row per token.
+
+    One blank cell makes pandas read the column as float, so every key becomes '1001.0'
+    and never matches the contract's '1001': the merge silently finds no prices.
+    """
+    df["FinInstrmId"] = pd.to_numeric(df["FinInstrmId"], errors="coerce").astype("Int64").astype(str)
+    return df[df["FinInstrmId"] != "<NA>"].drop_duplicates("FinInstrmId", keep="last")
+
+
 def _combine_contract_structure(row: pd.Series) -> Tuple:
     return (
         (row[14], row[15], row[16]),
@@ -112,7 +122,7 @@ def get_fo_bhavcopy_df(bdate: str) -> pd.DataFrame:
     ]
 
     df = df.astype(str)
-    return df
+    return _by_token(df)
 
 
 # ===============================
@@ -212,7 +222,7 @@ def get_cm_bhavcopy_df(bdate: str) -> pd.DataFrame:
     ]
 
     df = df.astype(str)
-    return df
+    return _by_token(df)
 
 
 # =====================================================

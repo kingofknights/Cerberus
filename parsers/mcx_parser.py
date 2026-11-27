@@ -15,6 +15,16 @@ def _validate_file_exists(file_path: Path, file_description: str = None) -> None
         raise FileNotFoundError(f"{file_path}{desc}")
 
 
+def _by_token(df: pd.DataFrame) -> pd.DataFrame:
+    """Bhavcopy keyed by FinInstrmId as plain digits, one row per token.
+
+    One blank cell makes pandas read the column as float, so every key becomes '1001.0'
+    and never matches the contract's '1001': the merge silently finds no prices.
+    """
+    df["FinInstrmId"] = pd.to_numeric(df["FinInstrmId"], errors="coerce").astype("Int64").astype(str)
+    return df[df["FinInstrmId"] != "<NA>"].drop_duplicates("FinInstrmId", keep="last")
+
+
 # Field order of MCXScrips.bcp (no header row)
 MCXSCRIPS_COLUMNS = [
     "Filler2", "Filler4", "InstrumentPartitionID", "Filler8", "Filler2_2",
@@ -82,7 +92,7 @@ def get_mcx_bhavcopy_df(bdate: str) -> pd.DataFrame:
 
     df = pd.read_csv(file_path)
     df = df.astype(str)
-    return df
+    return _by_token(df)
 
 
 # ===============================================

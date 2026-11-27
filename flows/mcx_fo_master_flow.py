@@ -285,7 +285,7 @@ def transform_fo_contract_data(
     df["last_price"] = (fo_df["LastPric"].astype(float) * 100).fillna(0).astype(int)
     df["previous_close_price"] = (fo_df["PrvsClsgPric"].astype(float) * 100).fillna(0).astype(int)
     df["underlying_price"] = (fo_df["UndrlygPric"].astype(float) * 100).fillna(0).astype(int)
-    df["total_traded_volume"] = fo_df["TtlTradgVol"].fillna(0).astype(int)
+    df["total_traded_volume"] = pd.to_numeric(fo_df["TtlTradgVol"], errors="coerce").fillna(0).astype(int)
     df["total_traded_value"] = (fo_df["TtlTrfVal"].astype(float) * 100).fillna(0).astype(int)
     df["high_dpr"] = pd.to_numeric(fo_df["UpperDailyPriceRange"], errors="coerce").fillna(0).astype(int)
     df["low_dpr"] = pd.to_numeric(fo_df["LowerDailyPriceRange"], errors="coerce").fillna(0).astype(int)
@@ -309,7 +309,7 @@ def transform_fo_contract_data(
     df["future_token"] = get_future_token(df)
     
     # Adding new columns
-    df["open_interest"] = fo_df["OpnIntrst"].fillna(0).astype(int)
+    df["open_interest"] = pd.to_numeric(fo_df["OpnIntrst"], errors="coerce").fillna(0).astype(int)
 
     # Filter invalid records
     df = df[df["future_token"] != -1]

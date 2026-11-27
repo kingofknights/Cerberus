@@ -116,7 +116,7 @@ def transform_cm_contract_data(
     df["last_price"] = (cm_df["LastPric"].astype(float) * 100).fillna(0).astype(int)
     df["previous_close_price"] = (cm_df["PrvsClsgPric"].astype(float) * 100).fillna(0).astype(int)
     df["underlying_price"] = (cm_df["UndrlygPric"].astype(float) * 100).fillna(0).astype(int)
-    df["total_traded_volume"] = cm_df["TtlTradgVol"].fillna(0).astype(int)
+    df["total_traded_volume"] = pd.to_numeric(cm_df["TtlTradgVol"], errors="coerce").fillna(0).astype(int)
     df["total_traded_value"] = (cm_df["TtlTrfVal"].astype(float) * 100).fillna(0).astype(int)
 
     df["high_dpr"] = cm_df["Upper Circuit Price"].fillna(0).astype(int)
